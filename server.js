@@ -3,6 +3,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const morgan = require('morgan');
 
 // Load environment variables
 dotenv.config();
@@ -11,9 +14,12 @@ dotenv.config();
 const app = express();
 
 // Middleware
+app.use(helmet()); // Set security HTTP headers
 app.use(cors());
-app.use(express.json());
+app.use(morgan('dev')); // Logging
+app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(mongoSanitize()); // Data sanitization against NoSQL injection
 
 // Database Connection
 const connectDB = async () => {
@@ -36,7 +42,6 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/cart', require('./routes/cart'));
 app.use('/api/orders', require('./routes/orders'));
-app.use('/api/payments', require('./routes/payments'));
 
 // Health Check
 app.get('/api/health', (req, res) => {
